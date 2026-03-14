@@ -7,6 +7,7 @@ const INSTRUCTIONS: &str = "task-tracker CLI tool\n\
 const HELP_MAN: &str = "\
 -| help - displays help manual page\n\
 -| quit - finishes the program\n\
+-| list - lists existing tasks\n\
 -| add - prompts for a new task\n\
 -| delete - prompts for an existing task for deletion";
 
