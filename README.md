@@ -12,9 +12,8 @@
 
 ### Future Plans (by priority) 🛠️
 0. **Refactoring:** Improve the overall codebase quality.
-1. **Structs:** Transition to using `structs` for managing task metadata.
-2. **Modularization:** Separate the code into smaller, specialized files with related functions and structures.
-3. **Task Metadata:** Add support for due dates, priorities, or categories.
-4. **Methods:** Implement associated methods for tasks to replace standalone functions.
+1. **Modularization:** Separate the code into smaller, specialized files with related functions and structures.
+2. **Task Metadata:** Add support for due dates, priorities, or categories.
+3. **Methods:** Implement associated methods for tasks to replace standalone functions.
 
 > **Note:** This program is a pet project, intended to be continuously developed as I learn more Rust concepts, syntax, and best practices. It should not be considered a finished product yet! 🚧
