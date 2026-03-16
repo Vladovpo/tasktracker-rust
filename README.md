@@ -6,14 +6,16 @@
 - 🗑️ **Deleting tasks:** Easily remove completed or unnecessary items.
 
 ### How to use 🚀
-1. Compile the project using `cargo build --release`.
-2. Set an alias in your shell configuration (e.g., `alias tt='./target/release/task-tracker'`) to start the executable easily.
-3. Enjoy your productivity!
 
-### Future Plans (by priority) 🛠️
+1. Compile the project for production:
+   `cargo build --release`
+2. Install the binary to your local system path so it can be run from any directory:
+   `cargo install --path .`
+3. Add the .cargo installs to your console in `.bashrc` or `.zshrc` or `config.fish` for ease of use
+
+### Future Plans (by priority I don't follow) 🛠️
 0. **Refactoring:** Improve the overall codebase quality.
 1. **Modularization:** Separate the code into smaller, specialized files with related functions and structures.
 2. **Task Metadata:** Add support for due dates, priorities, or categories.
-3. **Methods:** Implement associated methods for tasks to replace standalone functions.
 
 > **Note:** This program is a pet project, intended to be continuously developed as I learn more Rust concepts, syntax, and best practices. It should not be considered a finished product yet! 🚧

@@ -1,116 +1,150 @@
-use std::io;
-use std::io::Write;
+use chrono::{DateTime, Utc};
+use clap::{Parser, Subcommand};
+use serde::{Serialize, Deserialize};
 
-// CONSTANTS
-const INSTRUCTIONS: &str = "task-tracker CLI tool\n\
--| help - displays help manual page\n\
--| quit - finishes the program";
-const HELP_MAN: &str = "\
--| help - displays help manual page\n\
--| quit - finishes the program\n\
--| list - lists existing tasks\n\
--| add - prompts for a new task\n\
--| delete - prompts for an existing task for deletion";
+// CLAP PART
+#[derive(Parser)]
+#[command(name = "task-tracker")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Add {
+        #[arg(short, long)]
+        name: String,
+
+        #[arg(short, long)]
+        desc: String,
+    },
+    Delete {
+        #[arg(short, long)]
+        name: String,
+    },
+    Complete {
+        #[arg(short, long)]
+        name: String,
+    },
+    List
+}
 
 // STRUCTS
+#[derive(Serialize, Deserialize)]
 struct Task {
+    priority: usize,
     name: String,
     description: String,
-    is_completed: bool
+    is_completed: bool,
+    creation_date: DateTime<Utc>,
 }
 
 struct Tasks {
-    tasks: Vec<Task>
+    tasks: Vec<Task>,
 }
 
-// FUNCTIONS
+impl Tasks {
+    fn load_from_storage() -> Self {
+        let raw = std::fs::read_to_string("tasks.json").unwrap_or_else(|_| "[]".to_string());
+        let tasks: Vec<Task> = serde_json::from_str(&raw).expect("Failed to parse tasks.json");
+
+        Tasks { tasks }
+    }
+
+    fn save_to_storage(&self){
+        let data = serde_json::to_string_pretty(&self.tasks).expect("Failed to serialize");
+        std::fs::write("tasks.json", data).expect("Failed to write to file");
+    }
+
+    fn find_task_by_name(&self, target: &str) -> Option<usize> {
+        let mut target_index: Option<usize> = None;
+
+        for (index, task) in self.tasks.iter().enumerate() {
+            if task.name.len() > 0 && task.name == target {
+                target_index = Some(index);
+                return target_index;
+            }
+        }
+        target_index
+    }
+
+    // IDK how to make it but it's genius TRUST
+    fn with_task_by_name<F>(&mut self, name: String, action: F)
+    where F: FnOnce(&mut Tasks, usize)
+    {
+        let target: &str = name.trim();
+
+        if let Some(index) = self.find_task_by_name(target) { action(self, index) }
+        else { println!("Task {target} not found") }
+    }
+
+    fn print_task(task: &Task) {
+        let date_str = task.creation_date.format("%Y-%m-%d").to_string();
+        let completion = if task.is_completed { "+" } else { "-" };
+
+        print!("{} {}\n {}\n  Priority: {}\n  Created: {}\n", completion, task.name, task.description, task.priority, date_str);
+    }
+
+    fn total(tasks: &Vec<Task>) -> usize {
+        tasks.len()
+    }
+
+    fn completed(tasks: &Vec<Task>) -> usize {
+        let mut completed: usize = 0;
+        for task in tasks.iter() {
+            if task.is_completed == true {
+                completed += 1
+            }
+        }
+        completed
+    }
+
+    fn add(&mut self, name: String, description: String) {
+        // Task DATA defined HERE
+        let priority = Self::total(&self.tasks) + 1;
+        let creation_date = Utc::now();
+
+        let task = Task {
+            priority,
+            name,
+            description,
+            is_completed: false,
+            creation_date,
+        };
+        self.tasks.push(task);
+    }
+
+    fn complete(&mut self, name: String) {
+        self.with_task_by_name(name, | tasks, index | { tasks.tasks[index].is_completed = true; })
+    }
+
+    fn delete(&mut self, name: String) {
+        self.with_task_by_name(name, | tasks, index | { tasks.tasks.remove(index); })
+    }
+
+    fn list(&self) {
+        println!("Completed: {}\nPending: {}\n", Self::completed(&self.tasks), Self::total(&self.tasks) - Self::completed(&self.tasks));
+        for task in self.tasks.iter() {
+            if task.is_completed == false {
+                Self::print_task(task);
+            } else {
+                Self::print_task(task);
+            }
+        }
+    }
+}
+
 fn main() {
-    // to refactor when I'll have learned structs
-    let mut tasks = Tasks {
-        tasks: Vec::new()
-    };
+    let cli = Cli::parse();
+    let mut tasks = Tasks::load_from_storage();
 
-    menu(&mut tasks);
-}
-
-fn menu(tasks: &mut Tasks) {
-    println!("{}", INSTRUCTIONS);
-    loop {
-        let choice: String = input("[task-tracker]$ ");
-
-        match choice.trim() {
-            "list" => list(tasks),
-            "add" => add(tasks),
-            "delete" => delete(tasks),
-            "help" => help(),
-            "quit" => break,
-            _ => println!("Invalid option! Try again")
-        }
+    match cli.command {
+        Commands::Add { name, desc } => { tasks.add(name, desc) },
+        Commands::Delete { name } => { tasks.delete(name) },
+        Commands::Complete { name } => { tasks.complete(name) },
+        Commands::List => tasks.list(),
     }
-}
 
-// should print out tasks in a viewable manner
-fn list(tasks: &mut Tasks) {
-    for (index, task) in tasks.tasks.iter().enumerate() {
-        print!("{} - {}\n\
-            - {}\n\
-            Completed: {}\n", index+1, task.name, task.description, task.is_completed)
-    }
-}
-
-fn help() {
-    println!("{}", HELP_MAN);
-}
-
-fn add(tasks: &mut Tasks) {
-    let task_name = input("Type in a task to add: ");
-    let task_description = input("Type in this task's description: ");
-
-    let task = Task {
-        name: task_name,
-        description: task_description,
-        is_completed: false
-    };
-
-    tasks.tasks.push(task)
-}
-
-// deleting is completing for less inefficient brainfuck
-fn delete(tasks: &mut Tasks) {
-    let temp_target: String = input("Type in the literal name of the task to delete: ");
-    let target: &str = temp_target.trim();
-
-    let found_index: Option<usize> = find_task_by_name(tasks, target);
-
-    match found_index {
-        Some(index) => {
-            tasks.tasks.remove(index);
-            println!("Task {target} successfully removed");
-        },
-        None => println!("Task {target} not found"),
-    }
-}
-
-fn input(prompt: &str) -> String {
-    print!("{}", prompt);
-
-    io::stdout().flush().expect("Failed to flush stdout");
-
-    let mut input: String = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read input");
-    input.trim().to_string()
-}
-
-fn find_task_by_name(tasks: &Tasks, target: &str) -> Option<usize> {
-    let mut target_index: Option<usize> = None;
-
-    for (index, task) in tasks.tasks.iter().enumerate() {
-        if task.name.len() > 0 && task.name == target {
-            target_index = Some(index);
-            return target_index;
-        }
-    }
-    target_index
+    tasks.save_to_storage();
 }
