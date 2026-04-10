@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+use crate::models::task::Priority;
+
 #[derive(Parser)]
 #[command(name = "task-tracker")]
 pub struct Cli {
@@ -23,6 +25,13 @@ pub enum Commands {
     Complete {
         #[arg(short, long)]
         name: String,
+    },
+    SetPriority {
+        #[arg(short, long)]
+        name: String,
+        
+        #[arg(short, long)]
+        priority: Priority,
     },
     List,
 }

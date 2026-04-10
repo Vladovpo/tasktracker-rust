@@ -30,6 +30,10 @@ impl App {
                 self.tasks.complete(name);
                 save_to_storage(&self.tasks);
             }
+            Commands::SetPriority { name, priority } => {
+                self.tasks.set_priority(name, priority);
+                save_to_storage(&self.tasks);
+            }
         };
     }
 }

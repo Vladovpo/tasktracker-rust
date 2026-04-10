@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use clap::ValueEnum;
 
 // ENUMS
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-enum Priority {
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, ValueEnum)]
+pub enum Priority {
     Low,
     Medium,
     High,
@@ -21,7 +22,7 @@ pub struct Task {
     priority: Priority,
     name: String,
     description: String,
-    is_completed: Completion,
+    completion: Completion,
     creation_date: DateTime<Utc>,
 }
 
@@ -41,23 +42,9 @@ impl Tasks {
         None
     }
 
-    // IDK how to make it but it's genius TRUST
-    fn with_task_by_name<F>(&mut self, name: String, action: F)
-    where
-        F: FnOnce(&mut Tasks, usize),
-    {
-        let target: &str = name.trim();
-
-        if let Some(index) = self.find_task_by_name(target) {
-            action(self, index)
-        } else {
-            println!("Task {target} not found")
-        }
-    }
-
     pub fn print_task(task: &Task) {
         let date_str = task.creation_date.format("%Y-%m-%d").to_string();
-        let completion = match task.is_completed {
+        let completion = match task.completion {
             Completion::Completed => "C",
             Completion::Pending => "P",
         };
@@ -80,7 +67,7 @@ impl Tasks {
     pub fn completed(tasks: &[Task]) -> usize {
         let mut completed: usize = 0;
         for task in tasks.iter() {
-            if task.is_completed == Completion::Completed {
+            if task.completion == Completion::Completed {
                 completed += 1
             }
         }
@@ -96,22 +83,40 @@ impl Tasks {
             priority,
             name,
             description,
-            is_completed: Completion::Pending,
+            completion: Completion::Pending,
             creation_date,
         };
         self.tasks.push(task);
     }
 
     pub fn complete(&mut self, name: String) {
-        self.with_task_by_name(name, |tasks, index| {
-            tasks.tasks[index].is_completed = Completion::Completed;
-        })
+        let target: &str = name.trim();
+
+        if let Some(index) = self.find_task_by_name(target) {
+            self.tasks[index].completion = Completion::Completed;
+        } else {
+            println!("Task {target} not found")
+        }
+    }
+
+    pub fn set_priority(&mut self, name: String, priority: Priority) {
+        let target: &str = name.trim();
+
+        if let Some(index) = self.find_task_by_name(target) {
+            self.tasks[index].priority = priority;
+        } else {
+            println!("Task {target} not found")
+        }
     }
 
     pub fn delete(&mut self, name: String) {
-        self.with_task_by_name(name, |tasks, index| {
-            tasks.tasks.remove(index);
-        })
+        let target: &str = name.trim();
+
+        if let Some(index) = self.find_task_by_name(target) {
+            self.tasks.remove(index);
+        } else {
+            println!("Task {target} not found")
+        }
     }
 
     pub fn list(&self) {
