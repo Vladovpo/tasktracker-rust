@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 use clap::ValueEnum;
+use serde::{Deserialize, Serialize};
 
 // ENUMS
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, ValueEnum)]
@@ -24,11 +24,13 @@ pub struct Task {
     description: String,
     completion: Completion,
     creation_date: DateTime<Utc>,
+    last_edit: DateTime<Utc>,
 }
 
 #[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Tasks {
     tasks: Vec<Task>,
+    last_edit: DateTime<Utc>,
 }
 
 impl Tasks {
@@ -64,7 +66,7 @@ impl Tasks {
         tasks.len()
     }
 
-    pub fn completed(tasks: &[Task]) -> usize {
+    pub fn list_completed(tasks: &[Task]) -> usize {
         let mut completed: usize = 0;
         for task in tasks.iter() {
             if task.completion == Completion::Completed {
@@ -78,6 +80,7 @@ impl Tasks {
         // Task DATA defined HERE
         let priority = Priority::Low;
         let creation_date = Utc::now();
+        let last_edit = Utc::now();
 
         let task = Task {
             priority,
@@ -85,8 +88,11 @@ impl Tasks {
             description,
             completion: Completion::Pending,
             creation_date,
+            last_edit,
         };
         self.tasks.push(task);
+
+        self.last_edit = Utc::now();
     }
 
     pub fn complete(&mut self, name: String) {
@@ -94,6 +100,8 @@ impl Tasks {
 
         if let Some(index) = self.find_task_by_name(target) {
             self.tasks[index].completion = Completion::Completed;
+
+            self.last_edit = Utc::now();
         } else {
             println!("Task {target} not found")
         }
@@ -104,6 +112,8 @@ impl Tasks {
 
         if let Some(index) = self.find_task_by_name(target) {
             self.tasks[index].priority = priority;
+
+            self.last_edit = Utc::now();
         } else {
             println!("Task {target} not found")
         }
@@ -114,6 +124,8 @@ impl Tasks {
 
         if let Some(index) = self.find_task_by_name(target) {
             self.tasks.remove(index);
+
+            self.last_edit = Utc::now();
         } else {
             println!("Task {target} not found")
         }
@@ -122,8 +134,8 @@ impl Tasks {
     pub fn list(&self) {
         println!(
             "Completed: {}\nPending: {}\n",
-            Self::completed(&self.tasks),
-            Self::total(&self.tasks) - Self::completed(&self.tasks)
+            Self::list_completed(&self.tasks),
+            Self::total(&self.tasks) - Self::list_completed(&self.tasks)
         );
         for task in self.tasks.iter() {
             Self::print_task(task);

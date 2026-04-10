@@ -29,7 +29,7 @@ pub enum Commands {
     SetPriority {
         #[arg(short, long)]
         name: String,
-        
+
         #[arg(short, long)]
         priority: Priority,
     },
