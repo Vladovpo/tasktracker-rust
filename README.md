@@ -1,21 +1,67 @@
-# Task Tracker in Rust: Pet Project 🦀
+# Task Tracker in Rust
 
-### Main Features ✨
-- 📋 **Listing tasks:** View all your pending items at a glance.
-- ➕ **Adding tasks:** Quickly capture new tasks.
-- 🗑️ **Deleting tasks:** Easily remove completed or unnecessary items.
+Small CLI pet project for learning Rust while building a simple task tracker.
 
-### How to use 🚀
+## Current Features
 
-1. Compile the project for production:
-   `cargo build --release`
-2. Install the binary to your local system path so it can be run from any directory:
-   `cargo install --path .`
-3. Add the .cargo installs to your console in `.bashrc` or `.zshrc` or `config.fish` for ease of use
+- List tasks
+- Add tasks
+- Complete tasks
+- Delete tasks
+- Store tasks in JSON
 
-### Future Plans (by priority I don't follow) 🛠️
-0. **Refactoring:** Improve the overall codebase quality.
-1. **Modularization:** Separate the code into smaller, specialized files with related functions and structures.
-2. **Task Metadata:** Add support for due dates, priorities, or categories.
+## Development
 
-> **Note:** This program is a pet project, intended to be continuously developed as I learn more Rust concepts, syntax, and best practices. It should not be considered a finished product yet! 🚧
+Use Cargo for the normal development loop:
+
+```bash
+cargo check
+cargo test
+cargo run -- list
+cargo run -- add --name "sample" --desc "demo task"
+```
+
+If you want to run the compiled debug binary directly:
+
+```bash
+cargo build
+./target/debug/task-tracker list
+./target/debug/task-tracker complete --name "sample"
+```
+
+## CLI Commands
+
+```bash
+task-tracker list
+task-tracker add --name "sample" --desc "demo task"
+task-tracker complete --name "sample"
+task-tracker delete --name "sample"
+```
+
+## Installation
+
+Build a release binary:
+
+```bash
+cargo build --release
+```
+
+Install the binary locally:
+
+```bash
+cargo install --path .
+```
+
+## Storage
+
+This version uses a Linux-only JSON storage path:
+
+```text
+~/.local/share/task-tracker/tasks.json
+```
+
+If the file does not exist yet, the app starts with an empty task list.
+
+## Notes
+
+This is still a work-in-progress pet project. The goal is to keep it small, readable, and useful for learning Rust concepts over time.
