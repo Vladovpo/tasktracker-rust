@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 #[command(name = "task-tracker")]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands
+    pub command: Commands,
 }
 
 #[derive(Subcommand)]
@@ -24,5 +24,5 @@ pub enum Commands {
         #[arg(short, long)]
         name: String,
     },
-    List
+    List,
 }

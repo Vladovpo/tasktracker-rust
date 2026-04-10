@@ -1,5 +1,5 @@
+use crate::cli::{Cli, Commands};
 use crate::models::task::Tasks;
-use crate::cli::{ Cli, Commands };
 use crate::storage::json::{load_from_storage, save_to_storage};
 
 pub struct App {
@@ -9,23 +9,23 @@ pub struct App {
 impl App {
     pub fn new() -> Self {
         let tasks = load_from_storage();
-        
-        Self {tasks}
+
+        Self { tasks }
     }
 
     pub fn run(&mut self, cli: Cli) {
         match cli.command {
-            Commands::Add {name, desc} => {
+            Commands::Add { name, desc } => {
                 self.tasks.add(name, desc);
                 save_to_storage(&self.tasks);
-            },
+            }
             Commands::Delete { name } => {
                 self.tasks.delete(name);
                 save_to_storage(&self.tasks);
-            },
-            Commands::List {} => {
+            }
+            Commands::List => {
                 self.tasks.list();
-            },
+            }
             Commands::Complete { name } => {
                 self.tasks.complete(name);
                 save_to_storage(&self.tasks);
