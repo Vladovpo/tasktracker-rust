@@ -1,3 +1,5 @@
 /target
 .idea/
 tasks.json
+.codex
+.vscode
